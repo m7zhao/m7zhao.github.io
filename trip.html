@@ -619,6 +619,7 @@ function showDay(i) {
   panels.forEach((p, pi) => p.classList.toggle('active', pi === i));
   activeDay = i;
   document.getElementById('day-panels-wrap').scrollTop = 0;
+  updateURL();
 }
 
 // ============================================================
@@ -884,12 +885,50 @@ function switchTab(name) {
     initMap();
     setTimeout(() => map && map.invalidateSize(), 80);
   }
+  updateURL();
+}
+
+// ============================================================
+// URL PERSISTENCE
+// ============================================================
+const TAB_TO_URL = { hotels: 'overview', itinerary: 'itinerary', map: 'map' };
+const URL_TO_TAB = { overview: 'hotels', itinerary: 'itinerary', map: 'map' };
+let _urlReady = false;
+
+function updateURL() {
+  if (!_urlReady) return;
+  const activeTabEl = document.querySelector('.tab.active');
+  const tabId = activeTabEl ? activeTabEl.id.replace('tab-', '') : 'hotels';
+  const p = new URLSearchParams();
+  p.set('tab', TAB_TO_URL[tabId] || tabId);
+  if (tabId === 'itinerary' && DAYS[activeDay]) p.set('day', DAYS[activeDay].isoDate);
+  history.replaceState(null, '', '?' + p.toString());
 }
 
 // ============================================================
 // INIT
 // ============================================================
-loadWeather();
+(function init() {
+  const params = new URLSearchParams(location.search);
+
+  // Restore day before tab so activeDay is correct when tab restores
+  const urlDay = params.get('day');
+  if (urlDay) {
+    const idx = DAYS.findIndex(d => d.isoDate === urlDay);
+    if (idx >= 0) showDay(idx);
+  }
+
+  // Restore tab
+  const urlTabParam = params.get('tab');
+  const urlTab = URL_TO_TAB[urlTabParam];
+  if (urlTab) switchTab(urlTab);
+
+  // Enable URL writes and write canonical URL
+  _urlReady = true;
+  updateURL();
+
+  loadWeather();
+})();
 </script>
 </body>
 </html>
