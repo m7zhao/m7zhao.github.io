@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Yellowstone &amp; Grand Teton – May 2026</title>
+  <title>Grand Teton &amp; Yellowstone – May 2026</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -22,20 +22,11 @@
     .header {
       background: linear-gradient(155deg, #163d12 0%, #2d6127 55%, #3d7a35 100%);
       color: white;
-      padding: 18px 20px 14px;
+      padding: 10px 16px 9px;
       flex-shrink: 0;
     }
-    .header h1 { font-size: 21px; font-weight: 800; letter-spacing: -0.4px; line-height: 1.2; }
-    .header-sub { font-size: 12.5px; color: rgba(255,255,255,0.72); margin-top: 3px; }
-    .header-chips { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
-    .chip {
-      background: rgba(255,255,255,0.14);
-      border: 1px solid rgba(255,255,255,0.22);
-      border-radius: 20px;
-      padding: 3px 10px;
-      font-size: 11.5px;
-      font-weight: 500;
-    }
+    .header h1 { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; line-height: 1.2; }
+    .header-sub { font-size: 12px; color: rgba(255,255,255,0.72); margin-top: 2px; }
 
     /* ── Tab bar ─────────────────────────────────────────── */
     .tabs {
@@ -100,7 +91,7 @@
     .day-panel { display: none; padding-bottom: 48px; }
     .day-panel.active { display: block; }
 
-    .day-heading { padding: 18px 20px 12px; }
+    .day-heading { padding: 18px 20px 10px; }
     .day-heading-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .day-name { font-size: 20px; font-weight: 800; }
     .today-pill {
@@ -115,6 +106,45 @@
     }
     .day-label { font-size: 14px; font-weight: 700; margin-top: 4px; }
     .day-meta { font-size: 12.5px; color: #6b7280; margin-top: 2px; }
+
+    /* ── Weather card ───────────────────────────────────── */
+    .wx-card {
+      margin: 8px 16px 10px;
+      background: white;
+      border-radius: 12px;
+      padding: 11px 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 52px;
+    }
+    .wx-icon { font-size: 30px; line-height: 1; flex-shrink: 0; }
+    .wx-body { flex: 1; min-width: 0; }
+    .wx-temps { font-size: 16px; font-weight: 800; letter-spacing: -0.3px; }
+    .wx-celsius { font-size: 12px; font-weight: 500; color: #9ca3af; letter-spacing: 0; }
+    .wx-condition { font-size: 12.5px; font-weight: 600; color: #374151; margin-top: 1px; }
+    .wx-details { font-size: 11.5px; color: #6b7280; margin-top: 2px; }
+    .wx-location { font-size: 10px; color: #9ca3af; margin-top: 2px; font-style: italic; }
+    .wx-loading {
+      width: 100%;
+      text-align: center;
+      color: #9ca3af;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .wx-spinner {
+      width: 14px; height: 14px;
+      border: 2px solid #e5e7eb;
+      border-top-color: #9ca3af;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     /* Timeline stops */
     .stops { padding: 0 16px; }
@@ -147,6 +177,30 @@
     /* ── Map panel ───────────────────────────────────────── */
     #map { flex: 1; width: 100%; }
 
+    /* ── Overview panel ─────────────────────────────────── */
+    .overview-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding-bottom: 4px;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 14px 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    }
+    .stat-value { font-size: 22px; font-weight: 800; color: #1a1a1a; }
+    .stat-label { font-size: 11.5px; color: #9ca3af; margin-top: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+    .section-heading {
+      font-size: 11px;
+      font-weight: 800;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      padding: 16px 0 8px;
+    }
+
     /* ── Hotels panel ────────────────────────────────────── */
     .hotels-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
     .hotels-inner { padding: 16px; max-width: 560px; margin: 0 auto; }
@@ -174,28 +228,67 @@
       margin-bottom: 3px;
     }
     .field-val { font-size: 14px; color: #1a1a1a; }
-    .field-val.mono {
-      font-family: 'Courier New', monospace;
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-    }
     .field-val.muted { color: #4b5563; }
 
-    /* Map legend */
-    .map-legend {
-      position: absolute;
-      top: 10px; right: 10px;
-      background: rgba(255,255,255,0.95);
-      border-radius: 10px;
-      padding: 10px 13px;
-      font-size: 11.5px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-      z-index: 1000;
-      line-height: 1.8;
+    /* ── Flight cards ────────────────────────────────── */
+    .flight-card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
     }
-    .leg-row { display: flex; align-items: center; gap: 7px; }
-    .leg-dot { width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    .flight-banner {
+      padding: 14px 20px;
+      color: white;
+    }
+    .flight-banner-title { font-size: 14px; font-weight: 800; line-height: 1.3; }
+    .flight-banner-date { font-size: 12px; opacity: 0.85; margin-top: 3px; }
+    .flight-body { padding: 16px 20px; }
+    .flight-route {
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+    .flight-stop { text-align: center; flex-shrink: 0; }
+    .flight-iata { font-size: 22px; font-weight: 900; color: #1a1a1a; letter-spacing: -0.5px; }
+    .flight-city { font-size: 10px; color: #9ca3af; font-weight: 600; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .flight-leg {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 0 6px;
+      padding-bottom: 14px;
+    }
+    .flight-leg-plane { font-size: 13px; color: #6b7280; }
+    .flight-leg-line { width: 100%; border-top: 1.5px dashed #d1d5db; }
+
+    /* Map day toggles */
+    .map-toggles {
+      background: white;
+      padding: 10px 16px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      border-bottom: 1px solid #e5e7eb;
+      flex-shrink: 0;
+    }
+    .map-toggles::-webkit-scrollbar { display: none; }
+    .map-toggle {
+      flex-shrink: 0;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1.5px solid;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s;
+      white-space: nowrap;
+    }
 
     /* Responsive bump */
     @media (min-width: 600px) {
@@ -207,30 +300,24 @@
 <body>
 
 <div class="header">
-  <h1>Yellowstone &amp; Grand Teton</h1>
+  <h1>Grand Teton &amp; Yellowstone</h1>
   <div class="header-sub">May 23 – 30, 2026 &nbsp;·&nbsp; Wyoming &amp; Montana</div>
-  <div class="header-chips">
-    <span class="chip">8 Days</span>
-    <span class="chip">3 Hotels</span>
-    <span class="chip">Grand Teton NP</span>
-    <span class="chip">Yellowstone NP</span>
-  </div>
 </div>
 
 <div class="tabs">
-  <div class="tab active" id="tab-itinerary" onclick="switchTab('itinerary')">
+  <div class="tab active" id="tab-hotels" onclick="switchTab('hotels')">
+    <span class="ico">ℹ️</span>Overview
+  </div>
+  <div class="tab" id="tab-itinerary" onclick="switchTab('itinerary')">
     <span class="ico">📅</span>Itinerary
   </div>
   <div class="tab" id="tab-map" onclick="switchTab('map')">
     <span class="ico">🗺</span>Map
   </div>
-  <div class="tab" id="tab-hotels" onclick="switchTab('hotels')">
-    <span class="ico">🏨</span>Hotels
-  </div>
 </div>
 
 <!-- ITINERARY PANEL -->
-<div class="panel active" id="panel-itinerary">
+<div class="panel" id="panel-itinerary">
   <div class="day-scroller" id="day-scroller"></div>
   <div class="day-panels-wrap" id="day-panels-wrap"></div>
 </div>
@@ -241,7 +328,7 @@
 </div>
 
 <!-- HOTELS PANEL -->
-<div class="panel" id="panel-hotels">
+<div class="panel active" id="panel-hotels">
   <div class="hotels-scroll">
     <div class="hotels-inner" id="hotels-inner"></div>
   </div>
@@ -252,18 +339,26 @@
 // ============================================================
 // DATA
 // ============================================================
+// Determine today's date in Mountain Time (trip timezone)
+const TODAY_ISO = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Denver' });
+
 const DAYS = [
   {
     id: 0,
     short: 'Sat 5/23',
     date: 'Saturday, May 23',
-    isToday: true,
+    isToday: false,
     label: 'Arrive — Jackson Hole',
-    meta: 'Flight in · Check into The Lodge at Jackson Hole',
+    meta: 'Flight in · Check in · Explore town · Dinner',
     color: '#2d6127',
+    isoDate: '2026-05-23',
+    weatherCoord: [43.4786, -110.7626],
+    weatherLocation: 'Jackson, WY',
     stops: [
       { n: 'Jackson Hole Airport', t: '✈️ Arrival', drive: null, hotel: false, coords: [43.6073, -110.7378] },
       { n: 'The Lodge at Jackson Hole', t: '🏨 Check-in · 2 nights', drive: '21 min · 11.2 mi from airport', hotel: true, coords: [43.4786, -110.7626] },
+      { n: 'Jackson Town Square', t: '🦌 Town landmark · Famous antler arches', drive: null, hotel: false, coords: [43.4803, -110.7624] },
+      { n: "Annie's Thai Kitchen", t: '🍜 Dinner', drive: null, hotel: false, coords: [43.4812, -110.7631] },
     ]
   },
   {
@@ -272,14 +367,22 @@ const DAYS = [
     date: 'Sunday, May 24',
     isToday: false,
     label: 'Grand Teton National Park',
-    meta: '2 hrs 11 min driving · 74.8 mi · 5 stops',
+    meta: '10 stops · Full day in the park',
     color: '#0369a1',
+    isoDate: '2026-05-24',
+    weatherCoord: [43.4786, -110.7626],
+    weatherLocation: 'Jackson, WY',
     stops: [
-      { n: 'T.A. Moulton Barn', t: '📸 Historic Landmark · Mormon Row', drive: '29 min · 16.8 mi from lodge', hotel: false, coords: [43.6601, -110.5823] },
-      { n: 'Glacier View Turnout', t: '🏔 Scenic Overlook', drive: '8 min · 4.2 mi', hotel: false, coords: [43.7280, -110.7820] },
-      { n: 'Schwabacher Landing', t: '📸 Scenic Area · Snake River reflections', drive: '7 min · 1.7 mi', hotel: false, coords: [43.7037, -110.6534] },
-      { n: 'Snake River Overlook', t: '🌊 Overlook · Ansel Adams viewpoint', drive: '13 min · 5.5 mi', hotel: false, coords: [43.7600, -110.6300] },
-      { n: 'Oxbow Bend', t: '🦢 Wildlife Area · Great birding', drive: '21 min · 12.5 mi', hotel: false, coords: [43.8679, -110.5678] },
+      { n: 'Grand Teton National Park South Sign', t: '🏔 Park entrance · Moose', drive: null, hotel: false, coords: [43.6568, -110.7193] },
+      { n: 'T.A. Moulton Barn', t: '📸 Historic Landmark · Mormon Row', drive: null, hotel: false, coords: [43.6601, -110.5823] },
+      { n: 'Glacier View Turnout', t: '🏔 Scenic Overlook', drive: null, hotel: false, coords: [43.69072, -110.67189] },
+      { n: 'Snake River Lookout', t: '🌊 Overlook · Ansel Adams viewpoint', drive: null, hotel: false, coords: [43.7600, -110.6300] },
+      { n: 'Oxbow Bend', t: '🦢 Wildlife Area · Great birding', drive: null, hotel: false, coords: [43.8679, -110.5678] },
+      { n: "Leek's Marina", t: '⛵ Jackson Lake marina', drive: null, hotel: false, coords: [43.9069, -110.6289] },
+      { n: 'Colter Bay Visitor Center', t: 'ℹ️ Visitor center · Jackson Lake', drive: null, hotel: false, coords: [43.9058, -110.6408] },
+      { n: 'Schwabacher Landing', t: '📸 Snake River reflections', drive: null, hotel: false, coords: [43.7037, -110.6534] },
+      { n: 'REI Jackson', t: '🛒 Gear shop · Jackson', drive: null, hotel: false, coords: [43.4834, -110.7665] },
+      { n: 'Gun Barrel Steak and Game House', t: '🥩 Dinner', drive: null, hotel: false, coords: [43.4808, -110.7765] },
     ]
   },
   {
@@ -287,12 +390,19 @@ const DAYS = [
     short: 'Mon 5/25',
     date: 'Monday, May 25',
     isToday: false,
-    label: 'Drive to West Yellowstone',
-    meta: '3 hrs 2 min · 126 mi · Check out & check in',
+    label: 'Grand Teton → Yellowstone',
+    meta: 'Check out · 4 stops en route · Check in',
     color: '#78716c',
+    isoDate: '2026-05-25',
+    weatherCoord: [44.6612, -111.0966],
+    weatherLocation: 'West Yellowstone, MT',
     stops: [
       { n: 'The Lodge at Jackson Hole', t: '🏨 Check-out', drive: null, hotel: true, coords: [43.4786, -110.7626] },
-      { n: 'Best Western Weston Inn', t: '🏨 Check-in · 4 nights · West Yellowstone, MT', drive: '3 hr 2 min · 126 mi', hotel: true, coords: [44.6612, -111.0966] },
+      { n: 'Jenny Lake Overlook', t: '🏔 Scenic overlook · Grand Teton NP', drive: null, hotel: false, coords: [43.7449, -110.7358] },
+      { n: 'Jackson Lake Overlook', t: '🏔 Scenic overlook · Grand Teton NP', drive: null, hotel: false, coords: [43.8671, -110.6573] },
+      { n: 'Moose Falls', t: '💧 Waterfall · Yellowstone south entrance', drive: null, hotel: false, coords: [44.1405, -110.6642] },
+      { n: 'Lewis Falls', t: '💧 Waterfall · Lewis River, Yellowstone', drive: null, hotel: false, coords: [44.3066, -110.6469] },
+      { n: 'Best Western Weston Inn', t: '🏨 Check-in · 4 nights · West Yellowstone, MT', drive: null, hotel: true, coords: [44.6612, -111.0966] },
     ]
   },
   {
@@ -303,6 +413,9 @@ const DAYS = [
     label: 'Yellowstone Geothermals',
     meta: '2 hrs 9 min · 68.7 mi · 3 stops',
     color: '#dc2626',
+    isoDate: '2026-05-26',
+    weatherCoord: [44.5250, -110.8385],
+    weatherLocation: 'Midway Geyser Basin, Yellowstone',
     stops: [
       { n: 'Grand Prismatic Spring', t: '🌈 Largest hot spring in the US', drive: '44 min · 24.7 mi from inn', hotel: false, coords: [44.5250, -110.8385] },
       { n: 'Fountain Paint Pots', t: '🌋 Mud volcano & hot springs', drive: '4 min · 2.4 mi', hotel: false, coords: [44.5534, -110.8178] },
@@ -317,6 +430,9 @@ const DAYS = [
     label: 'Mammoth Hot Springs',
     meta: '2 hrs 59 min · 96.6 mi round trip',
     color: '#9333ea',
+    isoDate: '2026-05-27',
+    weatherCoord: [44.9767, -110.7083],
+    weatherLocation: 'Mammoth Hot Springs, Yellowstone',
     stops: [
       { n: 'Mammoth Hot Springs', t: '🪨 Colorful thermal terraces', drive: '1 hr 30 min · 48.3 mi from inn', hotel: false, coords: [44.9767, -110.7083] },
     ]
@@ -329,6 +445,9 @@ const DAYS = [
     label: 'Grand Canyon of Yellowstone',
     meta: '3 hrs 53 min · 85.3 mi · 3 stops',
     color: '#d97706',
+    isoDate: '2026-05-28',
+    weatherCoord: [44.7160, -110.4966],
+    weatherLocation: 'Canyon Village, Yellowstone',
     stops: [
       { n: 'Grand Canyon of the Yellowstone', t: '🏔 Dramatic canyon & Lower Falls', drive: '1 hr 15 min · 41.3 mi from inn', hotel: false, coords: [44.7160, -110.4966] },
       { n: 'Artist Point', t: '🎨 Best canyon overlook', drive: '6 min · 0.32 mi', hotel: false, coords: [44.7147, -110.4802] },
@@ -343,6 +462,9 @@ const DAYS = [
     label: 'Drive to Bozeman',
     meta: '1 hr 55 min · 89.2 mi · Check out & check in',
     color: '#78716c',
+    isoDate: '2026-05-29',
+    weatherCoord: [45.6770, -111.0425],
+    weatherLocation: 'Bozeman, MT',
     stops: [
       { n: 'Best Western Weston Inn', t: '🏨 Check-out', drive: null, hotel: true, coords: [44.6612, -111.0966] },
       { n: 'Kimpton Armory Hotel Bozeman', t: '🏨 Check-in · 1 night · Bozeman, MT', drive: '1 hr 55 min · 89.2 mi', hotel: true, coords: [45.6770, -111.0425] },
@@ -356,6 +478,9 @@ const DAYS = [
     label: 'Fly Home',
     meta: 'Check out · 14 min to airport',
     color: '#475569',
+    isoDate: '2026-05-30',
+    weatherCoord: [45.6770, -111.0425],
+    weatherLocation: 'Bozeman, MT',
     stops: [
       { n: 'Kimpton Armory Hotel Bozeman', t: '🏨 Check-out', drive: null, hotel: true, coords: [45.6770, -111.0425] },
       { n: 'Bozeman Yellowstone International Airport', t: '✈️ Departure', drive: '14 min · 10.4 mi', hotel: false, coords: [45.7775, -111.1533] },
@@ -368,8 +493,6 @@ const HOTELS = [
     name: 'The Lodge at Jackson Hole',
     address: '80 Scott Ln, Jackson, WY 83002',
     dates: 'Sat May 23 – Mon May 25 · 2 nights',
-    confs: ['2367841383', '1011906317'],
-    under: 'MENGQI ZHAO',
     color: '#2d6127',
     coords: [43.4786, -110.7626],
   },
@@ -377,8 +500,6 @@ const HOTELS = [
     name: 'Best Western Weston Inn',
     address: '103 Gibbon Ave, West Yellowstone, MT 59758',
     dates: 'Mon May 25 – Fri May 29 · 4 nights',
-    confs: ['471863950', 'H-M2VXMJTWMTZ9'],
-    under: 'Mengqi Zhao',
     color: '#1e40af',
     coords: [44.6612, -111.0966],
   },
@@ -386,12 +507,41 @@ const HOTELS = [
     name: 'Kimpton Armory Hotel Bozeman',
     address: '24 W Mendenhall St, Bozeman, MT 59715',
     dates: 'Fri May 29 – Sat May 30 · 1 night',
-    confs: ['88184915', '1011913678'],
-    under: 'MENGQI ZHAO',
     color: '#6d28d9',
     coords: [45.6770, -111.0425],
   },
 ];
+
+// Mark whichever day matches today (Mountain Time)
+DAYS.forEach(d => { d.isToday = d.isoDate === TODAY_ISO; });
+
+// WMO weather code lookup
+const WX = {
+  0:  { icon: '☀️',  desc: 'Clear sky' },
+  1:  { icon: '🌤️', desc: 'Mainly clear' },
+  2:  { icon: '⛅',  desc: 'Partly cloudy' },
+  3:  { icon: '☁️',  desc: 'Overcast' },
+  45: { icon: '🌫️', desc: 'Foggy' },
+  48: { icon: '🌫️', desc: 'Icy fog' },
+  51: { icon: '🌦️', desc: 'Light drizzle' },
+  53: { icon: '🌦️', desc: 'Drizzle' },
+  55: { icon: '🌦️', desc: 'Heavy drizzle' },
+  61: { icon: '🌧️', desc: 'Light rain' },
+  63: { icon: '🌧️', desc: 'Rain' },
+  65: { icon: '🌧️', desc: 'Heavy rain' },
+  71: { icon: '🌨️', desc: 'Light snow' },
+  73: { icon: '🌨️', desc: 'Snow' },
+  75: { icon: '🌨️', desc: 'Heavy snow' },
+  77: { icon: '🌨️', desc: 'Snow grains' },
+  80: { icon: '🌦️', desc: 'Light showers' },
+  81: { icon: '🌦️', desc: 'Showers' },
+  82: { icon: '⛈️',  desc: 'Heavy showers' },
+  85: { icon: '🌨️', desc: 'Snow showers' },
+  86: { icon: '❄️',  desc: 'Heavy snow showers' },
+  95: { icon: '⛈️',  desc: 'Thunderstorm' },
+  96: { icon: '⛈️',  desc: 'Thunderstorm w/ hail' },
+  99: { icon: '⛈️',  desc: 'Thunderstorm w/ hail' },
+};
 
 // ============================================================
 // ITINERARY
@@ -400,19 +550,22 @@ const HOTELS = [
   const scroller = document.getElementById('day-scroller');
   const wrap = document.getElementById('day-panels-wrap');
 
+  // Default to today's day, or day 0 if before trip, last day if after
+  const todayIdx = DAYS.findIndex(d => d.isToday);
+  const startIdx = todayIdx >= 0 ? todayIdx : (TODAY_ISO < DAYS[0].isoDate ? 0 : DAYS.length - 1);
+
   DAYS.forEach((day, i) => {
     // Tab button
     const btn = document.createElement('button');
-    btn.className = 'day-btn' + (i === 0 ? ' active' : '') + (day.isToday ? ' today' : '');
+    btn.className = 'day-btn' + (i === startIdx ? ' active' : '') + (day.isToday ? ' today' : '');
     btn.textContent = day.short;
-    btn.style.setProperty('--c', day.color);
     btn.onclick = () => showDay(i);
-    if (i === 0) btn.style.background = day.color;
+    if (i === startIdx) { btn.style.background = day.color; btn.style.color = 'white'; btn.style.borderColor = day.color; }
     scroller.appendChild(btn);
 
     // Day panel
     const panel = document.createElement('div');
-    panel.className = 'day-panel' + (i === 0 ? ' active' : '');
+    panel.className = 'day-panel' + (i === startIdx ? ' active' : '');
     panel.id = 'dp-' + i;
 
     let html = `
@@ -423,6 +576,9 @@ const HOTELS = [
         </div>
         <div class="day-label" style="color:${day.color}">${day.label}</div>
         <div class="day-meta">${day.meta}</div>
+      </div>
+      <div class="wx-card" id="wx-${i}">
+        <div class="wx-loading"><div class="wx-spinner"></div>Loading weather…</div>
       </div>
       <div class="stops">
     `;
@@ -462,8 +618,70 @@ function showDay(i) {
   });
   panels.forEach((p, pi) => p.classList.toggle('active', pi === i));
   activeDay = i;
-  // Scroll to top
   document.getElementById('day-panels-wrap').scrollTop = 0;
+}
+
+// ============================================================
+// WEATHER  (Open-Meteo, free, no API key)
+// ============================================================
+async function fetchDayWeather(day, i, attempt = 0) {
+  const BASE = 'https://api.open-meteo.com/v1/forecast';
+  const PARAMS = 'daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,windspeed_10m_max'
+    + '&temperature_unit=fahrenheit&windspeed_unit=mph&precipitation_unit=inch&timezone=America%2FDenver';
+  const el = document.getElementById('wx-' + i);
+  if (!el) return;
+
+  const [lat, lon] = day.weatherCoord;
+  const url = `${BASE}?latitude=${lat}&longitude=${lon}&${PARAMS}&start_date=${day.isoDate}&end_date=${day.isoDate}`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const d = data.daily;
+    if (!d?.time?.length) throw new Error('no data');
+
+    const code   = d.weathercode[0];
+    const wx     = WX[code] ?? { icon: '🌡️', desc: 'See forecast' };
+    const highF  = Math.round(d.temperature_2m_max[0]);
+    const lowF   = Math.round(d.temperature_2m_min[0]);
+    const highC  = Math.round((highF - 32) * 5 / 9);
+    const lowC   = Math.round((lowF  - 32) * 5 / 9);
+    const precip = d.precipitation_sum[0];
+    const wind   = Math.round(d.windspeed_10m_max[0]);
+
+    // Cache for map popups
+    wxCache[i] = { icon: wx.icon, desc: wx.desc, high: highF, low: lowF };
+
+    const extras = [];
+    if (precip > 0.01) extras.push(`💧 ${precip.toFixed(2)}"`);
+    extras.push(`💨 ${wind} mph`);
+
+    el.innerHTML = `
+      <div class="wx-icon">${wx.icon}</div>
+      <div class="wx-body">
+        <div class="wx-temps">${highF}°F / ${lowF}°F <span class="wx-celsius">${highC}°C / ${lowC}°C</span></div>
+        <div class="wx-condition">${wx.desc}</div>
+        <div class="wx-details">${extras.join(' · ')}</div>
+        <div class="wx-location">${day.weatherLocation}</div>
+      </div>
+    `;
+  } catch {
+    if (attempt < 2) {
+      // Retry after a short back-off
+      await new Promise(r => setTimeout(r, 800 * (attempt + 1)));
+      return fetchDayWeather(day, i, attempt + 1);
+    }
+    el.innerHTML = '<div class="wx-loading" style="color:#d1d5db">Weather unavailable</div>';
+  }
+}
+
+async function loadWeather() {
+  // Stagger requests 150 ms apart to stay within Open-Meteo rate limits
+  for (let i = 0; i < DAYS.length; i++) {
+    fetchDayWeather(DAYS[i], i); // fire-and-forget — UI updates as each resolves
+    if (i < DAYS.length - 1) await new Promise(r => setTimeout(r, 150));
+  }
 }
 
 // ============================================================
@@ -471,6 +689,84 @@ function showDay(i) {
 // ============================================================
 (function buildHotels() {
   const inner = document.getElementById('hotels-inner');
+
+  // Stats grid
+  inner.insertAdjacentHTML('beforeend', `
+    <div class="overview-stats">
+      <div class="stat-card">
+        <div class="stat-value">8</div>
+        <div class="stat-label">Days</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">3</div>
+        <div class="stat-label">Hotels</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="font-size:15px;padding-top:3px">Grand Teton</div>
+        <div class="stat-label">National Park</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="font-size:15px;padding-top:3px">Yellowstone</div>
+        <div class="stat-label">National Park</div>
+      </div>
+    </div>
+  `);
+
+  // Flights
+  const FLIGHTS = [
+    {
+      label: '✈️ Arrival',
+      date: 'Saturday, May 23',
+      color: 'linear-gradient(140deg, #1a3460 0%, #2952a3 100%)',
+      legs: [
+        { iata: 'MRY', city: 'Monterey' },
+        { iata: 'LAX', city: 'Los Angeles' },
+        { iata: 'JAC', city: 'Jackson Hole' },
+      ],
+    },
+    {
+      label: '✈️ Departure',
+      date: 'Saturday, May 30',
+      color: 'linear-gradient(140deg, #6b2d0e 0%, #a84f1e 100%)',
+      legs: [
+        { iata: 'BOZ', city: 'Bozeman' },
+        { iata: 'DEN', city: 'Denver' },
+        { iata: 'MRY', city: 'Monterey' },
+      ],
+    },
+  ];
+
+  function flightRoute(legs) {
+    return legs.map((stop, i) => {
+      const stopEl = `<div class="flight-stop">
+        <div class="flight-iata">${stop.iata}</div>
+        <div class="flight-city">${stop.city}</div>
+      </div>`;
+      const legEl = i < legs.length - 1 ? `<div class="flight-leg">
+        <div class="flight-leg-plane">✈</div>
+        <div class="flight-leg-line"></div>
+      </div>` : '';
+      return stopEl + legEl;
+    }).join('');
+  }
+
+  inner.insertAdjacentHTML('beforeend', `<div class="section-heading">Flights</div>`);
+  FLIGHTS.forEach(f => {
+    inner.insertAdjacentHTML('beforeend', `
+      <div class="flight-card">
+        <div class="flight-banner" style="background: ${f.color}">
+          <div class="flight-banner-title">${f.label}</div>
+          <div class="flight-banner-date">${f.date}</div>
+        </div>
+        <div class="flight-body">
+          <div class="flight-route">${flightRoute(f.legs)}</div>
+        </div>
+      </div>
+    `);
+  });
+
+  inner.insertAdjacentHTML('beforeend', `<div class="section-heading">Hotels</div>`);
+
   HOTELS.forEach(h => {
     const div = document.createElement('div');
     div.className = 'hotel-card';
@@ -494,6 +790,9 @@ function showDay(i) {
 // MAP
 // ============================================================
 let map = null;
+const wxCache = {};
+const markersByDay = {};
+const dayVisible = {};
 
 function initMap() {
   if (map) return;
@@ -505,17 +804,19 @@ function initMap() {
     maxZoom: 18,
   }).addTo(map);
 
-  // Route polyline through all stops in order
+  // Route polyline
   const routeCoords = DAYS.flatMap(d => d.stops.filter(s => s.coords).map(s => s.coords));
   L.polyline(routeCoords, { color: '#6b7280', weight: 2.5, dashArray: '6 5', opacity: 0.55 }).addTo(map);
 
-  // Stop markers
+  // Stop markers — grouped by day
   DAYS.forEach(day => {
-    day.stops.forEach((s, si) => {
+    markersByDay[day.id] = [];
+    dayVisible[day.id] = true;
+
+    day.stops.forEach(s => {
       if (!s.coords) return;
-      const r = s.hotel ? 10 : 7;
       const marker = L.circleMarker(s.coords, {
-        radius: r,
+        radius: s.hotel ? 10 : 7,
         fillColor: day.color,
         color: 'white',
         weight: 2,
@@ -523,37 +824,52 @@ function initMap() {
       }).addTo(map);
 
       marker.bindPopup(
-        `<div style="font-size:13px;line-height:1.5">
+        `<div style="font-size:13px;line-height:1.6">
           <strong>${s.n}</strong><br>
           <span style="color:#6b7280">${day.date}</span><br>
           <span>${s.t}</span>
+          <div id="map-wx-${day.id}" style="margin-top:4px;font-size:12px;color:#374151"></div>
         </div>`,
-        { maxWidth: 220 }
+        { maxWidth: 230 }
       );
+
+      marker.on('popupopen', () => {
+        const wxEl = document.getElementById('map-wx-' + day.id);
+        if (!wxEl) return;
+        const wx = wxCache[day.id];
+        if (wx) wxEl.innerHTML = `${wx.icon} ${wx.high}°/${wx.low}°F · ${wx.desc}`;
+        else wxEl.textContent = 'Loading weather…';
+      });
+
+      markersByDay[day.id].push(marker);
     });
   });
 
-  // Legend
-  const legendDays = [
-    { label: 'Arrive (5/23)', color: '#2d6127' },
-    { label: 'Grand Teton (5/24)', color: '#0369a1' },
-    { label: 'Drive days', color: '#78716c' },
-    { label: 'Geothermals (5/26)', color: '#dc2626' },
-    { label: 'Mammoth (5/27)', color: '#9333ea' },
-    { label: 'Canyon (5/28)', color: '#d97706' },
-    { label: 'Depart (5/30)', color: '#475569' },
-  ];
+  // Interactive day toggle strip
+  const togglesEl = document.createElement('div');
+  togglesEl.className = 'map-toggles';
 
-  const legendEl = document.createElement('div');
-  legendEl.className = 'map-legend';
-  legendEl.innerHTML = legendDays.map(l =>
-    `<div class="leg-row"><div class="leg-dot" style="background:${l.color}"></div>${l.label}</div>`
-  ).join('');
-  document.getElementById('panel-map').appendChild(legendEl);
+  DAYS.forEach(day => {
+    const btn = document.createElement('button');
+    btn.className = 'map-toggle';
+    btn.textContent = day.short;
+    btn.style.borderColor = day.color;
+    btn.style.background = day.color;
+    btn.style.color = 'white';
+    btn.onclick = () => {
+      const nowVisible = !dayVisible[day.id];
+      dayVisible[day.id] = nowVisible;
+      markersByDay[day.id].forEach(m => nowVisible ? m.addTo(map) : map.removeLayer(m));
+      btn.style.background = nowVisible ? day.color : 'white';
+      btn.style.color = nowVisible ? 'white' : day.color;
+      btn.style.opacity = nowVisible ? '1' : '0.5';
+    };
+    togglesEl.appendChild(btn);
+  });
 
-  // Fit bounds
-  const allPts = routeCoords;
-  map.fitBounds(L.latLngBounds(allPts).pad(0.08));
+  const mapPanel = document.getElementById('panel-map');
+  mapPanel.insertBefore(togglesEl, document.getElementById('map'));
+  map.fitBounds(L.latLngBounds(routeCoords).pad(0.08));
 }
 
 // ============================================================
@@ -569,6 +885,11 @@ function switchTab(name) {
     setTimeout(() => map && map.invalidateSize(), 80);
   }
 }
+
+// ============================================================
+// INIT
+// ============================================================
+loadWeather();
 </script>
 </body>
 </html>
