@@ -628,6 +628,7 @@ function showDay(i) {
   panels.forEach((p, pi) => p.classList.toggle('active', pi === i));
   activeDay = i;
   document.getElementById('day-panels-wrap').scrollTop = 0;
+  updateTitle();
   updateURL();
 }
 
@@ -885,6 +886,15 @@ function initMap() {
 // ============================================================
 // TAB SWITCHING
 // ============================================================
+function updateTitle() {
+  const activeTabEl = document.querySelector('.tab.active');
+  const tabId = activeTabEl ? activeTabEl.id.replace('tab-', '') : 'hotels';
+  const pageNames = { hotels: 'Overview', itinerary: 'Itinerary', map: 'Map' };
+  let title = `Grand Teton & Yellowstone – ${pageNames[tabId] || 'Overview'}`;
+  if (tabId === 'itinerary' && DAYS[activeDay]) title += ` – ${DAYS[activeDay].date}`;
+  document.title = title;
+}
+
 function switchTab(name) {
   ['itinerary', 'map', 'hotels'].forEach(t => {
     document.getElementById('panel-' + t).classList.toggle('active', t === name);
@@ -894,6 +904,7 @@ function switchTab(name) {
     initMap();
     setTimeout(() => map && map.invalidateSize(), 80);
   }
+  updateTitle();
   updateURL();
 }
 
@@ -934,6 +945,7 @@ function updateURL() {
 
   // Enable URL writes and write canonical URL
   _urlReady = true;
+  updateTitle();
   updateURL();
 
   loadWeather();
