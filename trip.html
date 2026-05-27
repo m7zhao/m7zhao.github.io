@@ -804,6 +804,7 @@ async function loadWeather() {
 let map = null;
 const wxCache = {};
 const markersByDay = {};
+const routePolylines = {};
 const dayVisible = {};
 
 function initMap() {
@@ -816,9 +817,7 @@ function initMap() {
     maxZoom: 18,
   }).addTo(map);
 
-  // Route polyline
   const routeCoords = DAYS.flatMap(d => d.stops.filter(s => s.coords).map(s => s.coords));
-  L.polyline(routeCoords, { color: '#6b7280', weight: 2.5, dashArray: '6 5', opacity: 0.55 }).addTo(map);
 
   // Stop markers — grouped by day
   DAYS.forEach(day => {
@@ -872,6 +871,7 @@ function initMap() {
       const nowVisible = !dayVisible[day.id];
       dayVisible[day.id] = nowVisible;
       markersByDay[day.id].forEach(m => nowVisible ? m.addTo(map) : map.removeLayer(m));
+      if (routePolylines[day.id]) nowVisible ? routePolylines[day.id].addTo(map) : map.removeLayer(routePolylines[day.id]);
       btn.style.background = nowVisible ? day.color : 'white';
       btn.style.color = nowVisible ? 'white' : day.color;
       btn.style.opacity = nowVisible ? '1' : '0.5';
@@ -882,6 +882,33 @@ function initMap() {
   const mapPanel = document.getElementById('panel-map');
   mapPanel.insertBefore(togglesEl, document.getElementById('map'));
   map.fitBounds(L.latLngBounds(routeCoords).pad(0.08));
+  loadRoutes();
+}
+
+async function loadRoutes() {
+  function drawPoly(dayId, coords, roaded) {
+    const day = DAYS.find(d => d.id === dayId);
+    const poly = roaded
+      ? L.polyline(coords, { color: day.color, weight: 3, opacity: 0.75 })
+      : L.polyline(coords, { color: day.color, weight: 2.5, dashArray: '6 5', opacity: 0.55 });
+    if (dayVisible[dayId]) poly.addTo(map);
+    routePolylines[dayId] = poly;
+  }
+
+  try {
+    const res = await fetch('trip-routes.json');
+    if (!res.ok) throw new Error('not found');
+    const data = await res.json();
+    DAYS.forEach(day => {
+      if (data[day.id]) drawPoly(day.id, data[day.id], true);
+    });
+  } catch {
+    // Fall back to straight lines per day
+    DAYS.forEach(day => {
+      const coords = day.stops.filter(s => s.coords).map(s => s.coords);
+      if (coords.length >= 2) drawPoly(day.id, coords, false);
+    });
+  }
 }
 
 // ============================================================
